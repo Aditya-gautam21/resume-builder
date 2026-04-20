@@ -6,4 +6,8 @@ def create_chunks():
 
     splitter = RecursiveCharacterTextSplitter(chunk_size=120, chunk_overlap=30)
     chunks = splitter.create_documents([data])
+    
     return chunks
+
+if __name__ == '__main__':
+    create_chunks()
