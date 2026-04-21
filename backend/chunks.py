@@ -8,6 +8,3 @@ def create_chunks():
     chunks = splitter.create_documents([data])
     
     return chunks
-
-if __name__ == '__main__':
-    create_chunks()
