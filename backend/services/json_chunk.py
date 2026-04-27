@@ -12,8 +12,10 @@ prompt = Prompts.json_chunking(parsed_json)
 
 llm = Llama(
     model_path=os.getenv('LOCAL_MODEL_PATH'),
-    n_ctx=2048,
-    n_gpu_layers=14,
+    n_ctx=8192,
+    n_gpu_layers=16,
+    n_batch=512,
+    flash_attn=True,
     verbose=False
 )
 
@@ -28,7 +30,9 @@ response = llm.create_chat_completion(
             'content':parsed_json
         }
     ],
-    temperature=0
+    temperature=0,
+    max_tokens=-1,
+    repeat_penalty=1.1
 )
 
 print(response['choices'][0]['message']['content'])
