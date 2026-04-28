@@ -7,32 +7,33 @@ from backend.utils.prompts import Prompts
 
 load_dotenv()
 
-parsed_json = json_parser()
-prompt = Prompts.json_chunking(parsed_json)
+def json_chunking():
+    parsed_json = json_parser()
+    prompt = Prompts.json_chunking(parsed_json)
 
-llm = Llama(
-    model_path=os.getenv('LOCAL_MODEL_PATH'),
-    n_ctx=8192,
-    n_gpu_layers=16,
-    n_batch=512,
-    flash_attn=True,
-    verbose=False
-)
+    llm = Llama(
+        model_path=os.getenv('LOCAL_MODEL_PATH'),
+        n_ctx=4096,
+        n_gpu_layers=12,
+        n_batch=512,
+        flash_attn=True,
+        verbose=False
+    )
 
-response = llm.create_chat_completion(
-    messages=[
-        {
-            'role':'system',
-            'content':prompt
-        },
-        {
-            'role':'user',
-            'content':parsed_json
-        }
-    ],
-    temperature=0,
-    max_tokens=-1,
-    repeat_penalty=1.1
-)
+    response = llm.create_chat_completion(
+        messages=[
+            {
+                'role':'system',
+                'content':prompt
+            },
+            {
+                'role':'user',
+                'content':parsed_json
+            }
+        ],
+        temperature=0,
+        max_tokens=-1,
+        repeat_penalty=1.1
+    )
 
-print(response['choices'][0]['message']['content'])
+    return (response['choices'][0]['message']['content'])
