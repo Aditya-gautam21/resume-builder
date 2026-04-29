@@ -14,8 +14,8 @@ def json_parser():
     # Extraction using local llm model(currently using gemma e4b)
     llm = Llama(
         model_path=os.getenv('LOCAL_MODEL_PATH'),
-        n_gpu_layers=8,
-        n_ctx=2048,
+        n_gpu_layers=12,
+        n_ctx=4096,
         verbose=False
         )
 
@@ -31,7 +31,7 @@ def json_parser():
     '''
 
 
-    prompt = Prompts.resume_extraction_prompt(resume_data)
+    prompt = Prompts.json_chunking(resume_data)
 
     response = llm.create_chat_completion(
         messages=[
@@ -48,6 +48,3 @@ def json_parser():
     )
 
     return (response['choices'][0]['message']['content'])
-
-if __name__ == '__main__':
-    print(json_parser())
