@@ -6,11 +6,14 @@ from backend.services.parser import json_parser
 
 def chunker():
     json_data = json_parser()
-    #json_path = Path('/home/adityagautam/Desktop/Projects/resume-builder/backend/services/data.json')
+
+    '''
+    json_path = Path('/home/adityagautam/Desktop/Projects/resume-builder/backend/services/data.json')
 
     with open(json_path, 'r') as f:
         json_data = json.load(f)
-
+    '''
+    
     docs = []
 
     for item in json_data:
