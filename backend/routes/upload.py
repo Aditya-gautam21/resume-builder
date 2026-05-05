@@ -9,7 +9,6 @@ from backend.services.embeddings import create_vector_store, load_vector_store
 
 router = APIRouter()
 
-@app.post('/upload-pdf/')
-
+@router.post("/upload-pdf/")
 def upload_resume():
-    file_path = 
+    resume = load_data()
