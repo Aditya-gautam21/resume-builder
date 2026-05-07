@@ -11,4 +11,4 @@ router = APIRouter()
 
 @router.post("/upload-pdf/")
 def upload_resume():
-    resume = load_data()
+    resume = load_data(     )
