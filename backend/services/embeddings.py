@@ -1,5 +1,5 @@
 import os
-from pathlib import Path
+from pathlib import Path 
 from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from backend.services.json_loader import chunker
