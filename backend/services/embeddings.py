@@ -2,9 +2,11 @@ import os
 from pathlib import Path 
 from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from backend.services.json_loader import chunker
+from backend.services.json_chunker import chunker
 
 INDEX_PATH = Path('/home/adityagautam/Desktop/Projects/resume-builder/backend/data/vectorstores')
+
+#Step4 -> creating vectorstore from the data reciened through json chunker
 
 def create_vector_store():
     chunks = chunker()
