@@ -32,7 +32,6 @@ def json_parser():
 
     '''
 
-
     prompt = Prompts.json_chunking(resume_data)
 
     response = llm.create_chat_completion(
