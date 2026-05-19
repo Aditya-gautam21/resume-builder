@@ -5,10 +5,10 @@ from backend.utils.local_llm import load_local_llm
 from backend.utils.prompts import Prompts
 
 
-def generate_resume(resume_data: Dict[str, Any], jd: str):
+def generate_resume(resume_data: Dict[str, Any], job_description: str):
     llm = load_local_llm()
 
-    prompt = Prompts.resume_generation(resume_json=resume_data, job_description=jd)
+    prompt = Prompts.resume_generation(resume_json=resume_data, job_description=job_description)
     response = llm.create_chat_completion(
         messages=[
             {
