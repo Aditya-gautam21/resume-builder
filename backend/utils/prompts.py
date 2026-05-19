@@ -62,4 +62,75 @@ class Prompts:
         
         return prompt
     
-   
+    def resume_generation(resume_json, job_description):
+      prompt = f'''You are an expert resume writer who helps candidates tailor their resumes to specific job descriptions.
+
+  You are given:
+  1. A candidate's resume structured as JSON (work experience, projects, skills)
+  2. A target job description
+
+  Your task: Rewrite and restructure the resume to maximize the candidate's fit for THIS specific job.
+
+  Rules:
+
+  QUANTIFICATION:
+  - Every bullet point must include at least one metric (%, $, time-saved, team-size, user-count, etc.)
+  - If the original resume lacks numbers, infer reasonable estimates based on the role's seniority and context
+  - Examples: "improved deployment speed" → "reduced deployment time by 60%, from 2 hours to 45 minutes"
+
+  KEYWORD MATCHING:
+  - Identify key terms, tools, and phrases in the job description
+  - Naturally incorporate these into the resume where the candidate genuinely has related experience
+  - Do NOT fabricate skills the candidate doesn't have. If a JD keyword doesn't match any real experience, skip it.
+
+  RESTRUCTURING:
+  - Reorder work experiences and projects so the most JD-relevant ones appear first
+  - Rewrite summary/objective (if present) to mirror the language of the job description
+  - Group skills by relevance to the JD, not alphabetically
+
+  OUTPUT FORMAT:
+  Return ONLY valid JSON. No markdown, no explanation.
+
+  {{
+    "tailored_resume": {{
+      "summary": "A 2-3 line professional summary written specifically for this JD",
+      "work_experience": [
+        {{
+          "role": "...",
+          "company": "...",
+          "duration": "...",
+          "bullets": [
+            "Quantified achievement aligned with JD requirement...",
+            "Another quantified achievement..."
+          ]
+        }}
+      ],
+      "projects": [
+        {{
+          "name": "...",
+          "technologies": ["..."],
+          "bullets": ["...", "..."]
+        }}
+      ],
+      "skills": {{
+        "languages": ["..."],
+        "frameworks": ["..."],
+        "tools": ["..."],
+        "other": ["..."]
+      }},
+      "keyword_map": [
+        {{
+          "jd_keyword": "keyword from JD",
+          "matched_to": "specific experience or skill the candidate has that maps to this keyword"
+        }}
+      ]
+    }}
+  }}
+
+  Candidate Resume JSON:
+  {resume_json}
+
+  Job Description:
+  {job_description}
+  '''
+      return prompt
