@@ -1,16 +1,11 @@
 import os
-from dotenv import load_dotenv
-from langchain_community.document_loaders import PyPDFLoader
+import io
+from pypdf import PdfReader
 
-load_dotenv()
+def extract_text_from_pdf(file_bytes: bytes, filename: str) -> str:
+    if not filename.endswith('pdf'):
+        raise ValueError("Only PDFs accepted!")
+    
+    reader = PdfReader(io.BytesIO(file_bytes))
 
-def load_data():
-    loader = PyPDFLoader(
-        file_path=os.getenv('FILE_PATH')
-    )
-
-    data  = loader.load()
-
-    data_txt = " ".join(chunk.page_content for chunk in data)
-
-    return data_txt
+    return "\n".join(page.extract_text() or "" for page in reader)
