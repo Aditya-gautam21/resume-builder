@@ -1,7 +1,4 @@
-from fastapi import File, UploadFile, HTTPException, APIRouter, Form
-from pypdf import PdfReader
-from pathlib import Path
-import io
+from fastapi import UploadFile, HTTPException, APIRouter, File, Form
 
 from backend.services.data_loader import extract_text_from_pdf
 from backend.services.json_data_extractor import json_parser
