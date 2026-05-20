@@ -1,19 +1,12 @@
 import json
 from pathlib import Path
 from langchain_core.documents import Document
-from backend.services.json_data_extractor import json_parser
+from backend.services.json_parser import json_parser
 
 #Step3 -> takes the raw json data and convert it into chunks with different fields to feed into the embedder
 
 def chunker():
     json_data = json_parser()
-
-    '''
-    json_path = Path('/home/adityagautam/Desktop/Projects/resume-builder/backend/services/data.json')
-
-    with open(json_path, 'r') as f:
-        json_data = json.load(f)
-    '''
     
     docs = []
 
