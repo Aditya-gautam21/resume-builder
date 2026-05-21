@@ -1,4 +1,3 @@
-import os
 import io
 from pypdf import PdfReader
 
@@ -8,4 +7,4 @@ def extract_text_from_pdf(file_bytes: bytes, filename: str) -> str:
     
     reader = PdfReader(io.BytesIO(file_bytes))
 
-    return "\n".join(page.extract_text() or "" for page in reader)
+    return "\n".join(page.extract_text() or "" for page in reader.pages)
