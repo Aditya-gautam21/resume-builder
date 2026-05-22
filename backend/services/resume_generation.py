@@ -5,7 +5,6 @@ from backend.utils.local_llm import load_local_llm
 from backend.utils.prompts import Prompts
 from backend.utils.json_helper import safe_parse_json
 
-
 def generate_resume(resume_data: Dict[str, Any], job_description: str, pages: int = 1):
     llm = load_local_llm()
 
@@ -19,7 +18,10 @@ def generate_resume(resume_data: Dict[str, Any], job_description: str, pages: in
                 "role": "system",
                 "content": "You are an expert resume tailor. Return ONLY valid JSON, no markdown, no explanation.",
             },
-            {"role": "user", "content": prompt},
+            {
+                "role": "user", 
+                "content": prompt
+             },
         ],
         temperature=0,
     )
