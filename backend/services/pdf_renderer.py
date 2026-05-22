@@ -1,4 +1,5 @@
 from fpdf import FPDF
+from fpdf.enums import XPos, YPos
 from backend.utils.templates import TEMPLATES
 
 
@@ -24,19 +25,19 @@ def _safe(text):
 
 def _section_heading(pdf, label, font):
     pdf.set_font(font["family"], "B", font["heading_size"])
-    pdf.cell(0, font["heading_size"] + 2, _safe(label.upper()), ln=True)
+    pdf.cell(0, font["heading_size"] + 2, _safe(label.upper()), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.ln(2)
 
 
 def _render_contact(pdf, data, font, color):
     pdf.set_font(font["family"], "B", font["name_size"])
     pdf.set_text_color(*color)
-    pdf.cell(0, font["name_size"] + 2, _safe(data.get("name", "")), ln=True)
+    pdf.cell(0, font["name_size"] + 2, _safe(data.get("name", "")), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
     pdf.set_font(font["family"], "", font["body_size"])
     parts = [_safe(v) for k, v in data.items() if k != "name" and v]
     if parts:
-        pdf.cell(0, font["line_height"], " | ".join(parts), ln=True)
+        pdf.cell(0, font["line_height"], " | ".join(parts), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
 
 def _render_summary(pdf, text, font, color):
@@ -52,7 +53,7 @@ def _render_work_experience(pdf, entries, font, color, bullet_char, max_bullets)
         header = f"{job.get('role', '')} - {job.get('company', '')}"
         if job.get("duration"):
             header += f"  ({job['duration']})"
-        pdf.cell(0, font["line_height"], _safe(header), ln=True)
+        pdf.cell(0, font["line_height"], _safe(header), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
         pdf.set_font(font["family"], "", font["body_size"])
         bullets = job.get("bullets", [])[:max_bullets]
@@ -72,7 +73,7 @@ def _render_bulleted_section(pdf, entries, font, color, bullet_char):
         header = name
         if techs:
             header += f"  |  {', '.join(_safe(t) for t in techs)}"
-        pdf.cell(0, font["line_height"], _safe(header), ln=True)
+        pdf.cell(0, font["line_height"], _safe(header), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
         pdf.set_font(font["family"], "", font["body_size"])
         for bullet in entry.get("bullets", []):
@@ -93,7 +94,7 @@ def _render_skills(pdf, skills, font, color):
     pdf.set_font(font["family"], "", font["body_size"])
     pdf.set_text_color(*color)
     for line in lines:
-        pdf.cell(0, font["line_height"], _safe(line), ln=True)
+        pdf.cell(0, font["line_height"], _safe(line), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
 
 def _render_education(pdf, entries, font, color):
@@ -103,7 +104,7 @@ def _render_education(pdf, entries, font, color):
         line = f"{entry.get('degree', '')} - {entry.get('school', '')}"
         if entry.get("year"):
             line += f"  ({entry['year']})"
-        pdf.cell(0, font["line_height"], _safe(line), ln=True)
+        pdf.cell(0, font["line_height"], _safe(line), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
 
 def _render_certifications(pdf, entries, font, color):
@@ -111,7 +112,7 @@ def _render_certifications(pdf, entries, font, color):
     pdf.set_text_color(*color)
     for cert in entries:
         name = cert if isinstance(cert, str) else cert.get("name", "")
-        pdf.cell(0, font["line_height"], _safe(name), ln=True)
+        pdf.cell(0, font["line_height"], _safe(name), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
 
 _SECTION_RENDERERS = {
