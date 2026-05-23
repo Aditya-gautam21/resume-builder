@@ -14,7 +14,7 @@ def create_vector_store():
     embeddings = OpenAIEmbeddings(model='text-embedding-3-small')
 
     vector_store = FAISS.from_documents(chunks, embeddings)
-    vector_store.save_local('INDEX_PATH')
+    vector_store.save_local(INDEX_PATH)
 
     return vector_store
 
