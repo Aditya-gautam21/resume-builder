@@ -20,7 +20,17 @@ def _safe(text):
     }
     for char, replacement in replacements.items():
         text = text.replace(char, replacement)
-    return text.encode("latin-1", errors="replace").decode("latin-1")
+    encoded = text.encode("latin-1", errors="replace").decode("latin-1")
+    lines = []
+    for line in encoded.split('\n'):
+        words = []
+        for w in line.split(' '):
+            if len(w) > 40:
+                words.extend([w[i:i+40] for i in range(0, len(w), 40)])
+            else:
+                words.append(w)
+        lines.append(" ".join(words))
+    return "\n".join(lines)
 
 
 def _section_heading(pdf, label, font):
@@ -58,7 +68,10 @@ def _render_work_experience(pdf, entries, font, color, bullet_char, max_bullets)
         pdf.set_font(font["family"], "", font["body_size"])
         bullets = job.get("bullets", [])[:max_bullets]
         for bullet in bullets:
-            pdf.multi_cell(0, font["line_height"], _safe(f"  {bullet_char} {bullet}"))
+            try:
+                pdf.multi_cell(0, font["line_height"], _safe(f"  {bullet_char} {bullet}"))
+            except Exception as e:
+                print(f"FAILED TO RENDER BULLET: {repr(bullet)}")
 
         if i < len(entries) - 1:
             pdf.ln(font["line_height"] * 0.5)
@@ -77,7 +90,10 @@ def _render_bulleted_section(pdf, entries, font, color, bullet_char):
 
         pdf.set_font(font["family"], "", font["body_size"])
         for bullet in entry.get("bullets", []):
-            pdf.multi_cell(0, font["line_height"], _safe(f"  {bullet_char} {bullet}"))
+            try:
+                pdf.multi_cell(0, font["line_height"], _safe(f"  {bullet_char} {bullet}"))
+            except Exception:
+                pass
 
         if i < len(entries) - 1:
             pdf.ln(font["line_height"] * 0.5)
