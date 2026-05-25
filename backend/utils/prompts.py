@@ -121,6 +121,11 @@ RESTRUCTURING:
 OUTPUT FORMAT:
 Return ONLY valid JSON. No markdown, no explanation.
 
+STRICT CONSTRAINTS:
+- EVERY "bullet" MUST be a single plain text string. Do NOT output objects or nested lists as bullets.
+- DO NOT generate single words or URLs longer than 35 characters. If a URL is long, shorten it or omit the protocol.
+- DO NOT generate bullets longer than 150 characters.
+
 {{
   "tailored_resume": {{
     "contact": {{
