@@ -42,7 +42,7 @@ async def tailor_resume(
         resume_json = parse_json(resume_txt)
 
         tailored = generate_resume(resume_data=resume_json, job_description=jd, pages=pages)
-        pdf_bytes = render_resume_pdf(tailored["tailored_resume"], template_name=template_name)
+        pdf_bytes = bytes(render_resume_pdf(tailored["tailored_resume"], template_name=template_name))
 
         return Response(
             content=pdf_bytes,
