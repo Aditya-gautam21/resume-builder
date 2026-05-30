@@ -1,3 +1,6 @@
+# Kairos — full development dependencies
+# Includes local LLM (llama.cpp), RAG (FAISS, chromadb), and PDF fallback (fpdf2).
+# For production (DeepSeek API only), use requirements-prod.txt.
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.5
 aiosignal==1.4.0
