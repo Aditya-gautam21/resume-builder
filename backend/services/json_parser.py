@@ -1,9 +1,11 @@
 import os 
 from dotenv import load_dotenv
 
-from backend.utils.local_llm import load_local_llm
+from backend.utils.llm import load_local_llm, load_deepseek_llm
 from backend.utils.prompts import Prompts
 from backend.utils.json_helper import safe_parse_json
+
+from backend.services.data_loader import extract_text_from_pdf
 
 load_dotenv()
 
@@ -32,3 +34,22 @@ def parse_json(resume_data):
     json_response = safe_parse_json(llm_response)
 
     return json_response
+
+
+def parse_json_deepseek(resume_data):
+    llm = load_deepseek_llm()
+
+    prompt = Prompts.resume_extraction_prompt(resume_data)
+
+    response = llm.invoke([
+        {
+            "role": "system",
+            "content": prompt,
+        },
+        {
+            "role": "user",
+            "content": "You extract structured JSON from resumes. Return ONLY valid JSON.",
+        },
+    ])
+
+    return safe_parse_json(response.content)
