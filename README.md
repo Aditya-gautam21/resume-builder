@@ -1,102 +1,144 @@
-# Resume Builder
+# Kairos
 
-Tailor your resume to any job description and export it as a PDF.
+AI-powered resume tailoring. Upload your resume and a job description — get back a professionally formatted, ATS-optimized PDF.
 
 ## How it works
 
 1. Upload a PDF resume
-2. Provide a job description
-3. The app uses a local LLM to rewrite your resume — adding quantified metrics, matching JD keywords, and reordering experience by relevance
-4. Download the tailored resume as a formatted PDF
+2. Paste a job description
+3. DeepSeek rewrites your resume — matching JD keywords, strengthening bullet points, and reordering experience by relevance
+4. The tailored content is rendered into a clean LaTeX PDF via tectonic
+5. Download the PDF, ready to submit
 
 ## Architecture
 
 ```
+Upload PDF  →  extract text  →  parse JSON (DeepSeek)  →  tailor (DeepSeek)  →  LaTeX  →  tectonic  →  PDF
+```
+
+```
 backend/
-├── main.py                  # FastAPI app entry point
+├── main.py                   # FastAPI app — serves API + frontend
 ├── routes/
-│   ├── generator.py         # /parse-resume, /job-description, /tailored-resume
-│   └── rag.py               # RAG vector store (WIP)
+│   └── generator.py          # /parse-resume, /job-description, /tailored-resume
 ├── services/
-│   ├── data_loader.py       # PDF text extraction via pypdf
-│   ├── json_parser.py       # Resume text → structured JSON via LLM
-│   ├── resume_generation.py # Tailor resume to JD via LLM
-│   ├── pdf_renderer.py      # JSON → formatted PDF via fpdf2
-│   ├── json_chunker.py      # JSON → LangChain Document chunks
-│   └── embeddings.py        # Chunks → FAISS vector store
+│   ├── data_loader.py        # PDF text extraction via pypdf
+│   ├── json_parser.py        # Resume text → structured JSON (DeepSeek)
+│   ├── resume_generation.py  # JSON → tailored LaTeX (DeepSeek)
+│   ├── latex_renderer.py     # LaTeX → PDF via tectonic subprocess
+│   ├── pdf_renderer.py       # Fallback PDF renderer (fpdf2, unused by default)
+│   ├── json_chunker.py       # JSON → LangChain Document chunks (RAG, unused)
+│   └── embeddings.py         # FAISS vector store (RAG, unused)
 ├── utils/
-│   ├── prompts.py           # LLM prompt templates
-│   ├── local_llm.py         # llama.cpp + OpenAI model loaders
-│   ├── json_helper.py       # Safe JSON parsing with markdown-stripping
-│   └── templates.py         # PDF templates (classic, modern-tech, minimal, executive)
-└── data/
-    └── vectorstores/        # FAISS index storage
+│   ├── llm.py                # LLM clients (DeepSeek, OpenAI, llama.cpp)
+│   ├── prompts.py            # LLM prompt templates
+│   └── json_helper.py        # Safe JSON parsing
+└── templates/                # (unused — rendered via LaTeX now)
+
+frontend/
+└── src/
+    ├── App.tsx               # React app — upload, JD input, download
+    └── index.css             # Styles
 ```
 
-## Setup
+## Quick start (Docker)
 
 ```bash
-# Create conda environment
-conda create -n resume-builder python=3.12 -y
-conda activate resume-builder
+# Pull the image
+docker pull adigaur121/kairos:latest
 
-# Install dependencies
-pip install -r backend/requirements.txt
-
-# Configure environment
-cp backend/.env.example backend/.env
-# Edit backend/.env with your paths and keys
+# Run
+docker run -d \
+  --name kairos \
+  --restart always \
+  -p 80:8000 \
+  -e DEEPSEEK_API_KEY="sk-..." \
+  adigaur121/kairos:latest
 ```
 
-### .env configuration
+Open `http://localhost` in your browser.
 
-| Variable | Description |
-|----------|-------------|
-| `LOCAL_MODEL_PATH` | Path to GGUF model for llama.cpp (e.g., Gemma) |
-| `OPENAI_API_KEY` | OpenAI API key (for embeddings) |
-| `EMBEDDING_MODEL_PATH` | Path to embedding model |
-| `SUPABASE_URL` | Supabase project URL (optional) |
-| `SUPABASE_KEY` | Supabase publishable key (optional) |
+## Local development
 
-## Running
+### Backend
 
 ```bash
+cd backend
+
+# Install deps (full set for local dev)
+pip install -r requirements.txt
+
+# Or slim set (production, DeepSeek-only)
+pip install -r requirements-prod.txt
+
+# Install tectonic
+curl -fsSL "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.16.9/tectonic-0.16.9-$(uname -m)-unknown-linux-gnu.tar.gz" -o /tmp/tectonic.tar.gz
+tar xzf /tmp/tectonic.tar.gz -C ~/.local/bin/ tectonic
+chmod +x ~/.local/bin/tectonic
+
+# Create .env with your API key
+echo 'DEEPSEEK_API_KEY=sk-...' > .env
+
+# Run
 uvicorn backend.main:app --reload
 ```
 
-Then open `http://localhost:8000/docs` for the Swagger UI.
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite dev server proxies API calls to `localhost:8000` automatically.
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DEEPSEEK_API_KEY` | **Yes** | DeepSeek API key for resume parsing and tailoring |
+| `OPENAI_API_KEY` | No | OpenAI API key (unused in default flow) |
+| `LOCAL_MODEL_PATH` | No | Path to GGUF model for local llama.cpp inference (unused in default flow) |
+| `SUPABASE_URL` | No | Supabase URL (unused stub) |
+| `SUPABASE_KEY` | No | Supabase key (unused stub) |
 
 ## API
-
-### `POST /parse-resume/`
-
-Upload a PDF resume, get structured JSON back.
-
-```
-curl -X POST http://localhost:8000/parse-resume/ \
-  -F "file=@resume.pdf"
-```
-
-### `POST /job-description/`
-
-Submit a job description.
-
-```
-curl -X POST http://localhost:8000/job-description/ \
-  -F "jd=Looking for an ML Engineer with PyTorch experience..."
-```
 
 ### `POST /tailored-resume/`
 
 Upload resume + job description, get a tailored PDF back.
 
-```
+```bash
 curl -X POST http://localhost:8000/tailored-resume/ \
   -F "resume=@resume.pdf" \
   -F "jd=Job description text here" \
   -F "pages=1" \
-  -F "template_name=classic" \
   -o tailored_resume.pdf
 ```
 
-Templates: `classic`, `modern-tech`, `minimal`, `executive`.
+### `POST /parse-resume/`
+
+Upload a PDF resume, get structured JSON + tailored LaTeX back (for debugging).
+
+```bash
+curl -X POST http://localhost:8000/parse-resume/ \
+  -F "file=@resume.pdf" \
+  -F "jd=Job description text here" \
+  -F "pages=1"
+```
+
+## Docker build (for contributors)
+
+```bash
+# Build for ARM64 (Oracle VM, Raspberry Pi)
+docker buildx build --platform linux/arm64 -t your-username/kairos:latest --push .
+
+# Build for x86_64
+docker buildx build --platform linux/amd64 -t your-username/kairos:latest --push .
+```
+
+The Dockerfile uses a 3-stage build:
+1. `node:22-alpine` — builds the React frontend
+2. `debian:bookworm-slim` — downloads the tectonic binary
+3. `python:3.12-slim` — runtime with FastAPI + frontend static files
