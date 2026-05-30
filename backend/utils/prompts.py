@@ -236,172 +236,118 @@ class Prompts:
     
     def deepseek_prompt(resume_json: dict, job_description: str, num_pages: int):
         page_rules = {
-                1: """
-            CRITICAL — 1 PAGE HARD LIMIT:
-            - The compiled PDF must fit in exactly 1 page. This is non-negotiable.
-            - Use these EXACT LaTeX settings, do not override them:
-                \\usepackage[margin=0.55in]{geometry}
-                \\setlength{\\itemsep}{1pt}
-                \\setlength{\\parskip}{0pt}
-                \\setlength{\\parsep}{0pt}
-            - Font size: 10pt in \\documentclass[letterpaper,10pt]{article}
-            - Maximum bullets per role: 3
-            - Maximum roles to include: 2 most recent/relevant only
-            - Maximum projects to include: 2 most relevant only/ *3* if only 1 experience or role is given
-            - Include 3-4 most relevant Achievements and Certifications 
-            - Summary: max 2 lines
-            - Skills: single line per category, no more than 5 items each, 3-4 lines max
-            - You can re-arrange sections according to importance/prefrence for the job
-            """,
-                2: """
-            PAGE LIMIT — 2 PAGES:
-            - Use margin=0.75in, 11pt font, itemsep=2pt
-            - Include full work history, all projects, certifications, and skills
-            - Summary: 3-4 lines
-            """,
-                3: """
-            PAGE LIMIT — 3 PAGES:
-            - Use margin=0.85in, 11pt font, itemsep=3pt  
-            - Include all sections in full detail
-            - Add coursework, publications, volunteer work if present
-            """
-            }
-        
+            1: """
+        CRITICAL — 1 PAGE HARD LIMIT:
+        - The compiled PDF must fit in exactly 1 page. This is non-negotiable.
+        - Use these EXACT LaTeX settings:
+            \\\\usepackage[margin=0.55in]{{geometry}}
+            \\\\setlength{{\\\\itemsep}}{{1pt}}
+            \\\\setlength{{\\\\parskip}}{{0pt}}
+        - Font size: 10pt in \\\\documentclass[letterpaper,10pt]{{article}}
+        - Maximum bullets per role: 3
+        - Maximum roles: 2 most recent/relevant only
+        - Maximum projects: 2 most relevant only (3 if only 1 role given)
+        - Include 3-4 most relevant achievements/certifications
+        - Summary: max 2 lines. Skills: single line per category, max 5 items each.
+        - Reorder sections by JD relevance.
+        """,
+            2: """
+        PAGE LIMIT — 2 PAGES:
+        - Use margin=0.7in, 11pt font
+        - Include full work history, all projects, certifications, skills
+        - Summary: 3-4 lines
+        """,
+            3: """
+        PAGE LIMIT — 3 PAGES:
+        - Use margin=0.85in, 11pt font
+        - Include all sections in full detail
+        - Add coursework, publications, volunteer work if present
+        """,
+        }
+
         prompt = f"""You are an expert resume writer and ATS (Applicant Tracking System) optimization specialist. \
-            Your task is to rewrite and tailor the candidate's resume to closely match the given job description, \
-            maximizing ATS score while keeping the content truthful, grounded, and professionally credible.
+Your task is to rewrite and tailor the candidate's resume to closely match the given job description, \
+maximizing ATS score while keeping the content truthful and professionally credible.
 
-            ---
+---
 
-            ## INPUTS
+## INPUTS
 
-            ### 1. CANDIDATE RESUME DATA (structured JSON extracted from uploaded resume)
-            json data = {resume_json}
+### 1. CANDIDATE RESUME DATA (structured JSON)
+{resume_json}
 
-            ### 2. TARGET JOB DESCRIPTION
-            job description = {job_description}
+### 2. TARGET JOB DESCRIPTION
+{job_description}
 
-            ### 3. REQUIRED RESUME LENGTH
-            {num_pages} : follow the rules from {page_rules} STRICTLY according to the number of pages given
+### 3. PAGE LIMIT
+{num_pages} page(s). Follow these rules STRICTLY:
+{page_rules}
 
-            ---
+---
 
-            ## YOUR OBJECTIVES
+## REWRITING RULES
 
-            1. **Maximize ATS compatibility** by naturally embedding high-frequency keywords and phrases \
-            from the job description throughout the resume.
-            2. **Preserve factual integrity** — Do NOT fabricate job titles, companies, degrees, dates, or \
-            metrics not present in the resume JSON. Rephrase, reframe, and reorder existing information only.
-            3. **Strengthen impact** — Rewrite bullet points using strong action verbs and make outcomes \
-            explicit where implied. If no metric exists, describe impact qualitatively but compellingly.
-            4. **Optimize structure** — Reorder sections, bullets, and skills to front-load the most relevant \
-            experience for this specific role.
-            5. **Output valid LaTeX** — The final resume must be clean, compilable LaTeX.
+### Summary
+- Write a professional summary tailored to this exact role.
+- Lead with most relevant experience and core competency.
+- Include 2-3 critical keywords from the JD.
 
-            ---
+### Work Experience
+- Rewrite each bullet using: [Action Verb] + [Task/Responsibility] + [Result/Impact]
+- Reorder bullets so JD-relevant ones appear first.
+- Strengthen weak bullets using reasonable inference — never invent numbers or companies.
+- Keep each bullet to 1-2 lines.
 
-            ## KEYWORD INTEGRATION RULES
+### Projects
+- Reorder by JD relevance. Rewrite descriptions to highlight JD-relevant technologies.
 
-            - Extract the top 10-15 keywords and phrases from the job description. These include:
-              - Hard skills (tools, technologies, languages, platforms)
-              - Soft skills explicitly mentioned (e.g., "cross-functional collaboration", "stakeholder communication")
-              - Role-specific jargon and domain terms
-              - Action verbs used to describe responsibilities (e.g., "architect", "scale", "drive")
-            - Integrate these naturally into the Summary, Experience bullets, and Skills section.
-            - Do NOT keyword-stuff — every keyword must fit grammatically and contextually.
-            - Mirror the job description's language exactly where possible.
+### Skills
+- Extract skills from the JSON. Add JD skills only if clearly implied by existing experience.
+- Do NOT invent skills. Group into logical categories.
 
-            ---
+### Education
+- Keep factually identical. Do not alter institutions, degrees, or dates.
 
-            ## REWRITING RULES
+### Achievements
+- Retain and prioritize items most relevant to the JD.
 
-            ### Summary / Objective
-            - Write a 2-3 line professional summary tailored to this exact role.
-            - Lead with the candidate's most relevant experience level and core competency.
-            - Include 2-3 of the most critical keywords from the job description.
+---
 
-            ### Experience
-            - Rewrite each bullet using the format: [Action Verb] + [Task/Responsibility] + [Result/Impact]
-            - Reorder bullets within each role so the most job description-relevant ones appear first.
-            - Elevate weak or vague bullets using reasonable professional inference — never invent \
-            specific numbers, project names, or companies not in the JSON.
-            - Integrate keywords from the job description naturally within bullets.
-            - Keep each bullet to 1-2 lines maximum.
-            - Adjust the total number of bullets across all roles to fit within {num_pages} page(s).
+## HALLUCINATION GUARDRAILS
 
-            ### Skills Section
-            - Extract all skills present in the resume JSON.
-            - Add skills from the JD only if clearly implied by the candidate's existing experience.
-            - Do NOT add skills with zero basis in the resume JSON.
-            - Group skills into logical categories (e.g., Languages, Frameworks, Tools, Cloud, Soft Skills).
+- NEVER add a company, institution, certification, or technology absent from the resume JSON.
+- NEVER invent a job title (industry-standard reframes okay, promotions are not).
+- NEVER fabricate metrics not present in the JSON.
+- Improve framing and language, never the underlying facts.
 
-            ### Education
-            - Keep education factually identical to the JSON data. Do not alter institutions, degrees, or dates.
-            - Add a short "Relevant Coursework" line only if the JD strongly emphasizes a matching field.
+---
 
-            ### Other Sections (Projects, Certifications, Publications, etc.)
-            - Retain sections from the JSON that are relevant to the JD.
-            - Rewrite project descriptions to highlight JD-relevant technologies and outcomes.
-            - Remove or de-emphasize sections entirely irrelevant to the role.
-            - Include or omit optional sections based on the {num_pages} page constraint.
+## LATEX OUTPUT RULES
 
-            ---
+- Output ONLY valid LaTeX code — no explanations, no markdown, no text outside the document.
+- Use this base setup:
 
-            ## PAGE LENGTH CALIBRATION
+\\\\documentclass[letterpaper,11pt]{{article}}
+\\\\usepackage[margin=0.7in]{{geometry}}
+\\\\usepackage{{enumitem}}
+\\\\usepackage{{hyperref}}
+\\\\usepackage[T1]{{fontenc}}
+\\\\usepackage[utf8]{{inputenc}}
+\\\\usepackage{{titlesec}}
+\\\\usepackage{{parskip}}
 
-            Follow {page_rules} strictly for page length calibration            
+- Section headers: bold, full-width, with a horizontal rule beneath (use \\\\rule after the heading).
+- Use itemize with tight spacing for ATS-friendly bullet lists.
+- Do NOT use multi-column layouts, tables for layout, text boxes, or graphics.
+- Use a clean, standard font. Do not load exotic font packages.
+- Hyperlink email and LinkedIn/GitHub URLs using \\\\href{{}}{{}}.
+- The LaTeX must compile without errors.
 
-            ---
+---
 
-            ## LATEX OUTPUT RULES
+## OUTPUT FORMAT
 
-            - Output ONLY valid LaTeX code — no explanations, no markdown, no text outside the document.
-            - Use this base setup:
+Return ONLY the complete LaTeX document, starting with \\\\documentclass and ending with \\\\end{{document}}.
+No explanation, commentary, or text outside the LaTeX."""
 
-            \\documentclass[letterpaper,11pt]{{article}}
-            \\usepackage[margin=0.75in]{{geometry}}
-            \\usepackage{{enumitem}}
-            \\usepackage{{hyperref}}
-            \\usepackage[T1]{{fontenc}}
-            \\usepackage[utf8]{{inputenc}}
-            \\usepackage{{titlesec}}
-            \\usepackage{{parskip}}
-
-            - Section headers: bold, full-width, with a horizontal rule beneath.
-            - Use itemize with tight spacing for ATS-friendly bullet lists.
-            - Do NOT use multi-column layouts, tables for layout, text boxes, or graphics.
-            - Use a clean, standard font only.
-            - Hyperlink email and LinkedIn/GitHub URLs using \\href{{}}{{}}.
-            - Must compile without errors using pdflatex.
-
-            ---
-
-            ## ATS COMPLIANCE
-
-            - No tables used for layout
-            - No text inside images or graphics
-            - All section headers are plain text
-            - Job titles, companies, and dates follow a consistent parseable format
-            - Linear top-to-bottom reading order
-            - Skills listed as plain text, not chips or tags
-            - No horizontal column splits in work history
-
-            ---
-
-            ## HALLUCINATION GUARDRAILS
-
-            - NEVER add a company, institution, certification, or technology absent from the resume JSON.
-            - NEVER invent a job title. Minor industry-standard reframes are acceptable \
-            (e.g., "Software Developer" → "Software Engineer"); promotions are not.
-            - NEVER fabricate metrics (%, $, numbers) not present in the JSON.
-            - Improve framing and language, never the underlying facts.
-            - When uncertain, preserve the original data and only improve the wording.
-
-            ---
-
-            ## OUTPUT FORMAT
-
-            Return ONLY the complete LaTeX document, starting with \\documentclass and ending with \
-            \\end{{document}}. No explanation, commentary, or text outside the LaTeX."""
-        
         return prompt
