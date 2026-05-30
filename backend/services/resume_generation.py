@@ -29,13 +29,12 @@ def generate_resume(resume_data: Dict[str, Any], job_description: str, pages: in
     llm_response = response["choices"][0]["message"]["content"]
     return safe_parse_json(llm_response)
 
-def generate_resume_deepseek(resume_data: Dict[str, Any], job_description: str, pages: int = 1):
+def generate_resume_deepseek(resume_data: Dict[str, Any], job_description: str, pages: int = 1) -> str:
     llm = load_deepseek_llm()
 
     resume_json_str = json.dumps(resume_data, indent=2)
-    prompt = Prompts.deepseek_prompt(
-        resume_json=resume_json_str, job_description=job_description, num_pages=pages
-    )
+    prompt = Prompts.deepseek_prompt(resume_json=resume_json_str, job_description=job_description, num_pages=pages)
+
     response = llm.invoke(
         [
             {
@@ -43,10 +42,16 @@ def generate_resume_deepseek(resume_data: Dict[str, Any], job_description: str, 
                 "content": prompt,
             },
             {
-                "role": "user", 
-                "content": "Build a resume from given inputs."
+                "role": "user",
+                "content": "Build a tailored LaTeX resume from the given inputs. Return ONLY valid LaTeX.",
              },
         ]
     )
 
-    return response.content
+    tex = response.content.strip()
+    if tex.startswith("```"):
+        tex = tex.split("\n", 1)[1] if "\n" in tex else tex[3:]
+        if tex.endswith("```"):
+            tex = tex[:-3].strip()
+
+    return tex
