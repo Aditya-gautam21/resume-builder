@@ -1,7 +1,7 @@
 import json
 from typing import Dict, Any
 
-from backend.utils.local_llm import load_local_llm
+from backend.utils.llm import load_local_llm, load_deepseek_llm
 from backend.utils.prompts import Prompts
 from backend.utils.json_helper import safe_parse_json
 
@@ -28,3 +28,25 @@ def generate_resume(resume_data: Dict[str, Any], job_description: str, pages: in
 
     llm_response = response["choices"][0]["message"]["content"]
     return safe_parse_json(llm_response)
+
+def generate_resume_deepseek(resume_data: Dict[str, Any], job_description: str, pages: int = 1):
+    llm = load_deepseek_llm()
+
+    resume_json_str = json.dumps(resume_data, indent=2)
+    prompt = Prompts.deepseek_prompt(
+        resume_json=resume_json_str, job_description=job_description, num_pages=pages
+    )
+    response = llm.invoke(
+        [
+            {
+                "role": "system",
+                "content": prompt,
+            },
+            {
+                "role": "user", 
+                "content": "Build a resume from given inputs."
+             },
+        ]
+    )
+
+    return response.content
